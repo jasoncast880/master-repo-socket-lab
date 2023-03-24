@@ -14,7 +14,7 @@ class ClientThread : public Thread
 // private member variables used
 private:
 
-	bool &functioning; // refrence to boolean
+	bool &functioning; // reference to boolean
 
 	//conncected socket
 	Socket& sock; // refrences a Socket object
@@ -91,19 +91,17 @@ public:
 int main(void)
 {
 	
-	std::cout << "SE3313 Lab 3 Client" << std::endl; // printing message
-	
+	std::cout << "SE3313 Lab 3 Client" << std::endl;	
 	bool functioning = true; // condition for loop
 
 	
 	Socket sock("127.0.0.1", 3000); // creating socket
 	
-	ClientThread clientThread(sock, functioning); // creating thread and initalizing with socket
+	ClientThread clientThread(sock, functioning); // creating thread and initalizing with socket object
 	
-	sock.Open(); // opening connection
-	
-	
-	// loop to wait 1 second while it is functioning
+	sock.Open(); // opening connection on given ip address and port
+
+	// loop to wait 1 second while it is waiting for a tcp server to connect to.
 	while(functioning) {
 	
 		sleep(1);

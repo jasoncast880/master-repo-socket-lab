@@ -18,26 +18,24 @@ class SocketThread : public Thread
 {
 private:
     
-    Socket& sock; // refrencing client socket the thread will handle
-    
-    ByteArray info; // holds data from the client sokcet
-
-    bool &terminate; // determines if thread should terminate
-    
+    Socket& sock; // Reference to client socket thread
+    ByteArray info; // Holds data from the client sokcet, uses the ByteArray Class to parse the string data into stream of bytes
+    bool &terminationStatus; // Determines if thread should terminate, ending loop and blocking call
     
     // vector that will keep track of all threads
-    std::vector<SocketThread*> &sockThrHolder; 
+    std::vector<SocketThread*> &socketThreadHolder; 
     
     
 public:
-
-    // Constructor for the SocketThread class, and initalize with input parameter
+    /*
+    *   instantiate threads using SocketThread Class:
+    *   every time a connection is made, a new server thread must be spawned in order to handle the connection
+    *   with a spare server thread to listen for new tcp connections on the port.
+    */
     SocketThread(Socket& sock, bool &terminate, std::vector<SocketThread*> &clientSockThr)
-    : sock(sock), terminate(terminate), sockThrHolder(clientSockThr)
+    : sock(sock), terminationStatus(terminate), socketThreadHolder(clientSockThr)
     {}
     
-    
-     // destructor
     ~SocketThread()
     {this->terminationEvent.Wait();} // wait for termination event signal
 
@@ -55,7 +53,7 @@ public:
         try
         {
             // loop that will run while terminate is true
-            while(!terminate)
+            while(!terminationStatus)
             {
                 // reading from socket and storing in variable
                 sock.Read(info);
@@ -72,16 +70,13 @@ public:
 		// checking if "DONE" was entered
                 if (result=="DONE") {
                 
-                    // removing object from vector
-                    sockThrHolder.erase(std::remove(sockThrHolder.begin(), sockThrHolder.end(), this), sockThrHolder.end());
-                    
-                    terminate = true; 
-                    
+                    //end the current thread using the erase call contained in the socketThreadHolder
+                    socketThreadHolder.erase(std::remove(socketThreadHolder.begin(), socketThreadHolder.end(), this), socketThreadHolder.end());
+                    terminationStatus = true; 
                     break;      
                 }
                 
-                
-                result.append("-received"); // appending to "res" string
+                result.append("-received"); // This is the string alteration deliverable being processed by the server class.
                 
                 // Send it back
                 sock.Write(ByteArray(result)); // writing to socket
@@ -208,7 +203,6 @@ int main(void)
 	std::cout << "Press enter to terminate the server...";
     std::cout.flush();
 	
-    // This creates the server on port 3000
     SocketServer server(3000);    
 
     // creating thread for server options
